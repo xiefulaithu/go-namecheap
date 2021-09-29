@@ -9,6 +9,7 @@ const (
 	sslActivate = "namecheap.ssl.activate"
 	sslCreate   = "namecheap.ssl.create"
 	sslGetList  = "namecheap.ssl.getList"
+	sslReissue  = "namecheap.ssl.reissue"
 )
 
 // SslGetListResult represents the data returned by 'domains.getList'
@@ -50,6 +51,23 @@ type SslActivateParams struct {
 }
 
 type SslActivateResult struct {
+	ID               int             `xml:"ID,attr"`
+	IsSuccess        bool            `xml:"IsSuccess,attr"`
+	HttpDCValidation SslDcValidation `xml:"HttpDCValidation"`
+	DNSDCValidation  SslDcValidation `xml:"DNSDCValidation"`
+}
+
+type SslReissueParams struct {
+	CertificateId      int
+	Csr                string
+	AdminEmailAddress  string
+	WebServerType      string
+	ApproverEmail      string
+	IsHTTPDCValidation bool
+	IsDNSDCValidation  bool
+}
+
+type SslReissueResult struct {
 	ID               int             `xml:"ID,attr"`
 	IsSuccess        bool            `xml:"IsSuccess,attr"`
 	HttpDCValidation SslDcValidation `xml:"HttpDCValidation"`
@@ -133,4 +151,35 @@ func (client *Client) SslActivate(params SslActivateParams) (*SslActivateResult,
 	}
 
 	return resp.SslActivate, nil
+}
+
+func (client *Client) SslReissue(params SslReissueParams) (*SslReissueResult, error) {
+	requestInfo := &ApiRequest{
+		command: sslReissue,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("CertificateID", strconv.Itoa(params.CertificateId))
+	requestInfo.params.Set("CSR", params.Csr)
+	requestInfo.params.Set("AdminEmailAddress", params.AdminEmailAddress)
+	requestInfo.params.Set("WebServerType", params.WebServerType)
+
+	if params.IsHTTPDCValidation {
+		requestInfo.params.Set("HTTPDCValidation", "true")
+	}
+
+	if params.IsDNSDCValidation {
+		requestInfo.params.Set("DNSDCValidation", "true")
+	}
+
+	if len(params.ApproverEmail) > 0 {
+		requestInfo.params.Set("ApproverEmail", params.ApproverEmail)
+	}
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.SslReissue, nil
 }
