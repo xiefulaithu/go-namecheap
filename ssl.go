@@ -12,7 +12,7 @@ const (
 	sslCreate   = "namecheap.ssl.create"
 	sslGetList  = "namecheap.ssl.getList"
 	sslReissue  = "namecheap.ssl.reissue"
-	sslGetInfo = "namecheap.ssl.getInfo"
+	sslGetInfo  = "namecheap.ssl.getInfo"
 )
 
 // SslGetListResult represents the data returned by 'domains.getList'
@@ -100,7 +100,7 @@ type SslGetInfoResult struct {
 type CertificateDetails struct {
 	CSR                string        `xml:"CSR"`
 	ApproverEmail      string        `xml:"ApproverEmail"`
-	CommonDomain       string        `xml:"CommonDomain"`
+	CommonName         string        `xml:"CommonName"`
 	AdministratorName  string        `xml:"AdministratorName"`
 	AdministratorEmail string        `xml:"AdministratorEmail"`
 	Certificates       *Certificates `xml:"Certificates"`
@@ -233,11 +233,11 @@ func (client *Client) SslReissue(params SslReissueParams) (*SslReissueResult, er
 	return resp.SslReissue, nil
 }
 
-func (client *Client) SslGetInfo(params SslGetInfoParams) (*SslGetInfoResult, error ) {
+func (client *Client) SslGetInfo(params SslGetInfoParams) (*SslGetInfoResult, error) {
 	requestInfo := &ApiRequest{
 		command: sslGetInfo,
-		method: "POST",
-		params: url.Values{},
+		method:  "POST",
+		params:  url.Values{},
 	}
 
 	requestInfo.params.Set("CertificateID", strconv.Itoa(params.CertificateId))
@@ -250,7 +250,6 @@ func (client *Client) SslGetInfo(params SslGetInfoParams) (*SslGetInfoResult, er
 			return nil, fmt.Errorf("invalid return-type: %s, parameter takes “Individual” (for X.509 format) or “PKCS7” values", params.ReturnType)
 		}
 	}
-
 
 	resp, err := client.do(requestInfo)
 	if err != nil {
