@@ -1,6 +1,7 @@
 package namecheap
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 )
@@ -10,6 +11,7 @@ const (
 	sslCreate   = "namecheap.ssl.create"
 	sslGetList  = "namecheap.ssl.getList"
 	sslReissue  = "namecheap.ssl.reissue"
+	sslGetInfo = "namecheap.ssl.getInfo"
 )
 
 // SslGetListResult represents the data returned by 'domains.getList'
@@ -72,6 +74,52 @@ type SslReissueResult struct {
 	IsSuccess        bool            `xml:"IsSuccess,attr"`
 	HttpDCValidation SslDcValidation `xml:"HttpDCValidation"`
 	DNSDCValidation  SslDcValidation `xml:"DNSDCValidation"`
+}
+
+type SslGetInfoParams struct {
+	CertificateId     int
+	ReturnCertificate bool
+	ReturnType        string
+}
+
+type SslGetInfoResult struct {
+	Status               string              `xml:"Status,attr"`
+	StatusDescription    string              `xml:"StatusDescription,attr"`
+	Type                 string              `xml:"Type,string"`
+	IssuedOn             string              `xml:"IssuedOn,attr"`
+	Expires              string              `xml:"Expires,attr"`
+	ActivationExpireDate string              `xml:"ActivationExpireDate,attr"`
+	OrderId              string              `xml:"OrderId,attr"`
+	ReplacedBy           string              `xml:"ReplacedBy,attr"`
+	SANSCount            string              `xml:"SANSCount,attr"`
+	CertificateDetails   *CertificateDetails `xml:"CertificateDetails"`
+	Provider             *Provider           `xml:"Provider"`
+}
+
+type CertificateDetails struct {
+	CSR                string        `xml:"CSR"`
+	ApproverEmail      string        `xml:"ApproverEmail"`
+	CommonDomain       string        `xml:"CommonDomain"`
+	AdministratorName  string        `xml:"AdministratorName"`
+	AdministratorEmail string        `xml:"AdministratorEmail"`
+	Certificates       *Certificates `xml:"Certificates"`
+}
+
+type Certificates struct {
+	CertificateReturned string           `xml:"CertificatedReturned,attr"`
+	ReturnType          string           `xml:"ReturnType,attr"`
+	Certificate         string           `xml:"Certificate"`
+	CaCertificates      []*CaCertificate `xml:"CaCertificates>Certificate"`
+}
+
+type CaCertificate struct {
+	Type        string `xml:"Type,attr"`
+	Certificate string `xml:"Certificate"`
+}
+
+type Provider struct {
+	OrderID string `xml:"OrderID"`
+	Name    string `xml:"Name"`
 }
 
 type SslDcValidation struct {
@@ -182,4 +230,31 @@ func (client *Client) SslReissue(params SslReissueParams) (*SslReissueResult, er
 	}
 
 	return resp.SslReissue, nil
+}
+
+func (client *Client) SslGetInfo(params SslGetInfoParams) (*SslGetInfoResult, error ) {
+	requestInfo := &ApiRequest{
+		command: sslGetInfo,
+		method: "POST",
+		params: url.Values{},
+	}
+
+	requestInfo.params.Set("CertificateID", strconv.Itoa(params.CertificateId))
+
+	if params.ReturnCertificate {
+		requestInfo.params.Set("returncertificate", "true")
+		if params.ReturnType == "individual" || params.ReturnType == "PKCS7" {
+			requestInfo.params.Set("returntype", params.ReturnType)
+		} else {
+			return nil, fmt.Errorf("invalid return-type: %s, parameter takes “Individual” (for X.509 format) or “PKCS7” values", params.ReturnType)
+		}
+	}
+
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.SslCertificateDetails, nil
 }
