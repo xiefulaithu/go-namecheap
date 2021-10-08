@@ -54,7 +54,7 @@ type ApiResponse struct {
 	DomainDNSSetCustom    *DomainDNSSetCustomResult `xml:"CommandResponse>DomainDNSSetCustomResult"`
 	DomainSetContacts     *DomainSetContactsResult  `xml:"CommandResponse>DomainSetContactResult"`
 	SslActivate           *SslActivateResult        `xml:"CommandResponse>SSLActivateResult"`
-	SslReissue            *SslReissueResult         `xml:"CommandResponse>SSLActivateResult"`
+	SslReissue            *SslReissueResult         `xml:"CommandResponse>SSLReissueResult"`
 	SslCreate             *SslCreateResult          `xml:"CommandResponse>SSLCreateResult"`
 	SslCertificates       []SslGetListResult        `xml:"CommandResponse>SSLListResult>SSL"`
 	SslCertificateDetails *SslGetInfoResult         `xml:"CommandResponse>SSLGetInfoResult"`

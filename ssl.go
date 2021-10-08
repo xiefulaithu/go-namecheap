@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -243,7 +244,7 @@ func (client *Client) SslGetInfo(params SslGetInfoParams) (*SslGetInfoResult, er
 
 	if params.ReturnCertificate {
 		requestInfo.params.Set("returncertificate", "true")
-		if params.ReturnType == "individual" || params.ReturnType == "PKCS7" {
+		if strings.ToLower(params.ReturnType) == "individual" || params.ReturnType == "PKCS7" {
 			requestInfo.params.Set("returntype", params.ReturnType)
 		} else {
 			return nil, fmt.Errorf("invalid return-type: %s, parameter takes “Individual” (for X.509 format) or “PKCS7” values", params.ReturnType)
